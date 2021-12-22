@@ -1,0 +1,42 @@
+version: "2.1"
+networks:
+  busy-blockchain:
+services:
+  busy-api:
+    build: ../busy-chaincode-api/.
+    ports:
+    - "3000:3000"
+    depends_on:
+    - mongo
+    environment:
+      - MONGODB_URI=mongodb://busyadmin:BusyChain123@mongo:27017/busy?authSource=admin
+    volumes: 
+    - ../busy-chaincode-api/blockchain/sdk/connection-profile:/usr/src/app/blockchain/sdk/connection-profile
+    networks:
+    - busy-blockchain
+  mongo:
+    image: mongo
+    environment:
+      # provide your credentials here
+      - MONGO_INITDB_ROOT_USERNAME=busyadmin
+      - MONGO_INITDB_ROOT_PASSWORD=BusyChain123
+      - MONGO_INITDB_DATABASE=busy
+    ports:
+    - "27017:27017"
+    volumes:
+    - data-volume:/data/db
+    networks:
+    - busy-blockchain
+  busy-events:
+    build: ~/busy-events/
+    depends_on:
+    - mongo
+    - busy-api
+    environment:
+      - MONGODB_URI=mongodb://busyadmin:BusyChain123@mongo:27017/busy?authSource=admin
+    volumes: 
+    - ../busy-chaincode-api/blockchain/sdk/connection-profile:/usr/src/app/blockchain/sdk/connection-profile
+    networks:
+    - busy-blockchain
+volumes:
+  data-volume:
